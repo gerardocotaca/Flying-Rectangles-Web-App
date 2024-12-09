@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style> html, body { margin: 0; } canvas { display: block; }</style>
+    <title>Flying Rectangles</title>
+</head>
+<body>
+    <canvas id="canvasId"></canvas>
+
+    <script>
+        "use strict";
+        window.onload = function(){
+            const canvas = document.getElementById("canvasId");
+            const ctx = canvas.getContext("2d");
+            const width = canvas.width = window.innerWidth;
+            const height = canvas.height = window.innerHeight;
+
+            const maxDimension = 90;
+            const minDimension = 45;
+            const spawnPoints = [
+                { x: width / 4, y: height / 4},
+                { x: (3 * width) / 4, y: height / 4},
+                { x: (3 * width) / 4, y: (3 * height) / 4},
+                { x: width / 4, y: (3 * height) / 4}
+            ];
+
+            let rectangles = [];
+            let spawnIndex = 0;
+
+            class Rectangle{
+                constructor(x, y, width, height, dx, dy, color){
+                    this.x = x;
+                    this.y = y;
+                    this.width = width;
+                    this.height = height;
+                    this.dx = dx;
+                    this.dy = dy;
+                    this.color = color;
+                }
+
+                draw(){
+                    ctx.fillStyle = this.color;
+                    ctx.fillRect(this.x, this.y, this.width, this.height);
+                }
+
+                move(){
+                    this.x += this.dx;
+                    this.y += this.dy;
+
+                    //Bounce off walls
+                    if (this.x <= 0 || this.x + this.width >= canvas.width){
+                        this.dx *= -1;
+                    }
+                    if (this.y <= 0 || this.y + this.height >= canvas.height){
+                        this.dy *= -1;
+                    }
+                }
+            }
+
+            function getRandomDimension(){
+                return Math.random() * (maxDimension - minDimension) + minDimension;
+            }
+
+            function getRandomVelocity(){
+                return (Math.random() * 4 + 2) * (Math.random() < 0.5 ? 1 : -1);
+            }
+
+            function getRandomColor(){
+                return `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`;
+            }
+
+            function spawnRectangle() {
+                const spawn = spawnPoints[spawnIndex];
+                const rectWidth = getRandomDimension();
+                const rectHeight = getRandomDimension();
+                const dx = getRandomVelocity();
+                const dy = getRandomVelocity();
+                const color = getRandomColor();
+
+                rectangles.push(new Rectangle(spawn.x, spawn.y, rectWidth, rectHeight, dx, dy, color));
+                spawnIndex = (spawnIndex + 1) % spawnPoints.length;
+            }
+
+            function update() {
+                ctx.clearRect(0, 0, width, height);
+                rectangles.forEach(rect => {
+                    rect.move();
+                    rect.draw();
+                });
+                requestAnimationFrame(update);
+            }
+
+            //Spawn rectangles every 500ms
+            setInterval(spawnRectangle, 500);
+
+            update();
+        }
+    </script>   
+</body>
+</html>
